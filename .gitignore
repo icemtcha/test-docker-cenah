@@ -1,0 +1,12 @@
+.env
+*.sql.bak
+*.sql.gz
+*.dump
+*.db
+*.sqlite
+db_data/
+*.log
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

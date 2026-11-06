@@ -9,6 +9,7 @@
 *.sqlite
 db_data/
 data/
+README.md
 
 *.log
 *.bak

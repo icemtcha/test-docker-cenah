@@ -12,6 +12,13 @@ $menu = [
     'laporan.php'   => 'Laporan',
 ];
 $flash = get_flash();
+
+$stokMenipisJumlah = 0;
+try {
+    $stokMenipisJumlah = count(produk_stok_menipis());
+} catch (Throwable $ex) {
+    $stokMenipisJumlah = 0;
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -19,61 +26,105 @@ $flash = get_flash();
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Toko Kelontong &mdash; <?= e($menu[$halaman] ?? 'Aplikasi') ?></title>
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f1f5f9; color: #1e293b; }
-  header.topbar { background: #0f766e; color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-  header.topbar h1 { font-size: 18px; margin: 0; }
-  nav a { color: #d1fae5; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 14px; }
-  nav a:hover { background: #115e59; color: #fff; }
-  nav a.active { background: #14b8a6; color: #06255b; font-weight: 600; }
-  .wrap { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
-  .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 20px; }
-  .card h2 { margin-top: 0; font-size: 18px; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
-  th { background: #f8fafc; font-weight: 600; }
-  tr:hover td { background: #f8fafc; }
-  .btn { display: inline-block; padding: 8px 14px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; text-decoration: none; color: #fff; background: #0f766e; }
-  .btn:hover { background: #115e59; }
-  .btn-sm { padding: 5px 10px; font-size: 12px; }
-  .btn-danger { background: #dc2626; }
-  .btn-danger:hover { background: #b91c1c; }
-  .btn-warn { background: #d97706; }
-  .btn-secondary { background: #64748b; }
-  .form-group { margin-bottom: 14px; }
-  .form-group label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
-  .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
-  .form-row { display: flex; gap: 14px; flex-wrap: wrap; }
-  .form-row .form-group { flex: 1; min-width: 180px; }
-  .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
-  .alert-success { background: #dcfce7; color: #166534; }
-  .alert-danger { background: #fee2e2; color: #991b1b; }
-  .alert-warning { background: #fef3c7; color: #92400e; }
-  .badge { padding: 3px 9px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-  .badge-ok { background: #dcfce7; color: #166534; }
-  .badge-low { background: #fee2e2; color: #991b1b; }
-  .stat-grid { display: flex; gap: 16px; flex-wrap: wrap; }
-  .stat { flex: 1; min-width: 180px; background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-  .stat .label { font-size: 13px; color: #64748b; }
-  .stat .value { font-size: 24px; font-weight: 700; margin-top: 6px; color: #0f766e; }
-  .actions { display: flex; gap: 6px; }
-  .inline-form { display: flex; gap: 8px; align-items: center; }
-  .search-bar { display: flex; gap: 8px; margin-bottom: 16px; }
-  .search-bar input { flex: 1; padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 6px; }
-  .muted { color: #64748b; font-size: 13px; }
-</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          DEFAULT: '#0f766e',
+          dark: '#115e59',
+          light: '#14b8a6',
+        },
+      },
+    },
+  },
+  plugins: [
+    function ({ addComponents }) {
+      addComponents({
+        '.card': {
+          backgroundColor: '#fff',
+          borderRadius: '0.75rem',
+          padding: '1.25rem',
+          boxShadow: '0 1px 3px rgba(0,0,0,.08)',
+          marginBottom: '1.25rem',
+        },
+        '.card h2': { fontSize: '1.125rem', fontWeight: '700', marginTop: '0', marginBottom: '0.75rem' },
+        '.btn': {
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '.35rem',
+          padding: '.5rem .875rem',
+          borderRadius: '.5rem',
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: '13px',
+          textDecoration: 'none',
+          color: '#fff',
+          backgroundColor: '#0f766e',
+          transition: 'background-color .15s ease',
+        },
+        '.btn:hover': { backgroundColor: '#115e59' },
+        '.btn-sm': { padding: '.3rem .625rem', fontSize: '12px' },
+        '.btn-danger': { backgroundColor: '#dc2626' },
+        '.btn-danger:hover': { backgroundColor: '#b91c1c' },
+        '.btn-warn': { backgroundColor: '#d97706' },
+        '.btn-warn:hover': { backgroundColor: '#b45309' },
+        '.btn-secondary': { backgroundColor: '#64748b' },
+        '.btn-secondary:hover': { backgroundColor: '#475569' },
+        '.form-group': { marginBottom: '.875rem', flex: '1', minWidth: '180px' },
+        '.form-group label': { display: 'block', marginBottom: '.375rem', fontSize: '13px', fontWeight: '600' },
+        '.form-group input, .form-group select, .form-group textarea': {
+          width: '100%',
+          padding: '.55rem .7rem',
+          border: '1px solid #cbd5e1',
+          borderRadius: '.5rem',
+          fontSize: '14px',
+          outline: 'none',
+        },
+        '.form-group input:focus, .form-group select:focus, .form-group textarea:focus': {
+          borderColor: '#14b8a6',
+          boxShadow: '0 0 0 3px rgba(20,184,166,.25)',
+        },
+        '.form-row': { display: 'flex', gap: '.875rem', flexWrap: 'wrap' },
+        '.alert': { padding: '.75rem 1rem', borderRadius: '.5rem', marginBottom: '1rem', fontSize: '14px' },
+        '.alert-success': { backgroundColor: '#dcfce7', color: '#166534' },
+        '.alert-danger': { backgroundColor: '#fee2e2', color: '#991b1b' },
+        '.alert-warning': { backgroundColor: '#fef3c7', color: '#92400e' },
+        '.badge': { display: 'inline-block', padding: '.15rem .55rem', borderRadius: '9999px', fontSize: '12px', fontWeight: '600' },
+        '.badge-ok': { backgroundColor: '#dcfce7', color: '#166534' },
+        '.badge-low': { backgroundColor: '#fee2e2', color: '#991b1b' },
+        '.stat': { flex: '1', minWidth: '180px', backgroundColor: '#fff', borderRadius: '.75rem', padding: '1.125rem', boxShadow: '0 1px 3px rgba(0,0,0,.08)' },
+        '.stat .label': { fontSize: '13px', color: '#64748b' },
+        '.stat .value': { fontSize: '1.5rem', fontWeight: '700', marginTop: '.375rem', color: '#0f766e' },
+        '.actions': { display: 'flex', gap: '.375rem' },
+        '.muted': { color: '#64748b', fontSize: '13px' },
+      });
+    },
+  ],
+};
+</script>
 </head>
-<body>
-<header class="topbar">
-  <h1>&#128717; Toko Kelontong</h1>
-  <nav>
-    <?php foreach ($menu as $file => $label): ?>
-      <a href="<?= e($file) ?>" class="<?= $halaman === $file ? 'active' : '' ?>"><?= e($label) ?></a>
-    <?php endforeach; ?>
-  </nav>
+<body class="bg-slate-100 text-slate-800 antialiased">
+<header class="bg-brand text-white shadow-md">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-3">
+    <h1 class="text-lg font-bold flex items-center gap-2 whitespace-nowrap">&#128717; Toko Kelontong</h1>
+    <nav class="flex flex-wrap items-center gap-1">
+      <?php foreach ($menu as $file => $label): ?>
+        <?php $aktif = $halaman === $file; ?>
+        <a href="<?= e($file) ?>"
+           class="px-3.5 py-2 rounded-md text-sm transition-colors relative <?= $aktif ? 'bg-brand-light text-white font-semibold' : 'text-emerald-100 hover:bg-brand-dark hover:text-white' ?>">
+          <?= e($label) ?>
+          <?php if ($file === 'stok.php' && $stokMenipisJumlah > 0): ?>
+            <span class="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold align-middle"><?= $stokMenipisJumlah ?></span>
+          <?php endif; ?>
+        </a>
+      <?php endforeach; ?>
+    </nav>
+  </div>
 </header>
-<div class="wrap">
+<main class="max-w-6xl mx-auto px-4 py-6">
 <?php if ($flash): ?>
   <div class="alert alert-<?= e($flash['tipe']) ?>"><?= e($flash['pesan']) ?></div>
 <?php endif; ?>

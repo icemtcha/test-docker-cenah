@@ -1,6 +1,6 @@
-</div>
-<footer style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">
-  &copy; <?= date('Y') ?> Aplikasi Toko Kelontong &middot; PHP Native + Docker
-</footer>
+  </main>
+  <footer class="text-center py-5 text-slate-400 text-sm">
+    &copy; <?= date('Y') ?> Aplikasi Toko Kelontong &middot; PHP Native + Docker
+  </footer>
 </body>
 </html>

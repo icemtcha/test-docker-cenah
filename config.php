@@ -18,7 +18,9 @@ function db(): PDO
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
         } catch (PDOException $e) {
-            die('Koneksi database gagal: ' . $e->getMessage());
+            error_log('Koneksi database gagal: ' . $e->getMessage());
+            http_response_code(500);
+            die('Koneksi database gagal. Silakan hubungi administrator.');
         }
     }
     return $pdo;

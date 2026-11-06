@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nama      = trim($_POST['nama'] ?? '');
         $harga     = (float)($_POST['harga'] ?? 0);
         $satuan    = trim($_POST['satuan'] ?? 'pcs');
-        $kategori  = $_POST['kategori_id'] !== '' ? (int)$_POST['kategori_id'] : null;
+        $kategori  = (($_POST['kategori_id'] ?? '') !== '') ? (int)$_POST['kategori_id'] : null;
         $stok      = (int)($_POST['stok'] ?? 0);
         $min       = (int)($_POST['stok_minimum'] ?? 0);
 
@@ -60,7 +60,7 @@ if ($action === 'edit' && $id > 0) {
 
 require_once __DIR__ . '/header.php';
 ?>
-<h2>Produk</h2>
+<h2 class="text-xl font-bold mb-4">Produk</h2>
 
 <?php if ($action === 'create' || $editData): ?>
 <div class="card">
@@ -115,35 +115,42 @@ require_once __DIR__ . '/header.php';
 
 <div class="card">
   <h2>Daftar Produk</h2>
-  <div class="search-bar">
-    <form method="get" action="produk.php" class="search-bar" style="margin:0;width:100%;">
-      <input type="text" name="q" placeholder="Cari nama atau kode produk..." value="<?= e($cari) ?>">
-      <button class="btn" type="submit">Cari</button>
-      <a class="btn btn-secondary" href="produk.php">Reset</a>
-      <a class="btn btn-warn" href="produk.php?action=create">+ Tambah</a>
-    </form>
-  </div>
+  <form method="get" action="produk.php" class="flex flex-wrap gap-2 items-center mb-4">
+    <input type="text" name="q" placeholder="Cari nama atau kode produk..." value="<?= e($cari) ?>" class="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-200">
+    <button class="btn" type="submit">Cari</button>
+    <a class="btn btn-secondary" href="produk.php">Reset</a>
+    <a class="btn btn-warn" href="produk.php?action=create">+ Tambah</a>
+  </form>
   <?php if ($produkList): ?>
-  <table>
+  <div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
     <thead>
-      <tr><th>Kode</th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Satuan</th><th>Stok</th><th>Aksi</th></tr>
+      <tr class="bg-slate-50 text-slate-600 text-left">
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Kode</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Nama</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Kategori</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Harga</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Satuan</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Stok</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Aksi</th>
+      </tr>
     </thead>
     <tbody>
       <?php foreach ($produkList as $p): ?>
-      <tr>
-        <td><?= e($p['kode']) ?></td>
-        <td><?= e($p['nama']) ?></td>
-        <td><?= e($p['kategori_nama'] ?? '-') ?></td>
-        <td><?= rupiah($p['harga']) ?></td>
-        <td><?= e($p['satuan']) ?></td>
-        <td>
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($p['kode']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($p['nama']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($p['kategori_nama'] ?? '-') ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= rupiah($p['harga']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($p['satuan']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100">
           <?php if ((int)$p['stok'] <= (int)$p['stok_minimum']): ?>
             <span class="badge badge-low"><?= (int)$p['stok'] ?> (menipis)</span>
           <?php else: ?>
             <span class="badge badge-ok"><?= (int)$p['stok'] ?></span>
           <?php endif; ?>
         </td>
-        <td class="actions">
+        <td class="px-3 py-2.5 border-b border-slate-100 actions">
           <a class="btn btn-sm" href="produk.php?action=edit&id=<?= (int)$p['id'] ?>">Edit</a>
           <a class="btn btn-sm btn-danger" href="produk.php?action=delete&id=<?= (int)$p['id'] ?>" onclick="return confirm('Hapus produk ini?')">Hapus</a>
         </td>
@@ -151,6 +158,7 @@ require_once __DIR__ . '/header.php';
       <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
   <?php else: ?>
   <p class="muted">Tidak ada produk<?= $cari ? ' untuk pencarian "' . e($cari) . '"' : '' ?>.</p>
   <?php endif; ?>

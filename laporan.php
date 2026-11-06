@@ -26,19 +26,41 @@ $stmt = db()->prepare('SELECT * FROM transaksi WHERE tanggal = ? ORDER BY create
 $stmt->execute([$tanggal]);
 $trxList = $stmt->fetchAll();
 
+if (($_GET['export'] ?? '') === 'csv') {
+    $namaFile = 'laporan-' . $tanggal . '.csv';
+    header('Content-Type: text/csv; charset=UTF-8');
+    header('Content-Disposition: attachment; filename="' . $namaFile . '"');
+    $out = fopen('php://output', 'w');
+    fwrite($out, "\xEF\xBB\xBF");
+    fputcsv($out, ['Laporan Penjualan Harian']);
+    fputcsv($out, ['Tanggal', $tanggal]);
+    fputcsv($out, []);
+    fputcsv($out, ['Jumlah Transaksi', (int)$ringkasan['jumlah_transaksi']]);
+    fputcsv($out, ['Total Item Terjual', $totalItem]);
+    fputcsv($out, ['Total Pendapatan', (float)$ringkasan['total_penjualan']]);
+    fputcsv($out, []);
+    fputcsv($out, ['Kode', 'Produk', 'Total Terjual', 'Satuan', 'Total Penjualan']);
+    foreach ($perProduk as $p) {
+        fputcsv($out, [$p['kode'], $p['nama'], (int)$p['total_qty'], $p['satuan'], (float)$p['total_penjualan']]);
+    }
+    fclose($out);
+    exit;
+}
+
 require_once __DIR__ . '/header.php';
 ?>
-<h2>Laporan Penjualan Harian</h2>
+<h2 class="text-xl font-bold mb-4">Laporan Penjualan Harian</h2>
 
 <div class="card">
-  <form method="get" action="laporan.php" class="search-bar" style="margin:0;">
-    <input type="date" name="tanggal" value="<?= e($tanggal) ?>">
+  <form method="get" action="laporan.php" class="flex flex-wrap gap-2 items-center">
+    <input type="date" name="tanggal" value="<?= e($tanggal) ?>" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-200">
     <button class="btn" type="submit">Tampilkan</button>
     <a class="btn btn-secondary" href="laporan.php">Hari Ini</a>
+    <a class="btn btn-warn" href="laporan.php?export=csv&tanggal=<?= e($tanggal) ?>">&#128190; Export CSV</a>
   </form>
 </div>
 
-<div class="stat-grid" style="margin-bottom:20px;">
+<div class="flex gap-4 flex-wrap mb-5">
   <div class="stat">
     <div class="label">Tanggal Laporan</div>
     <div class="value" style="font-size:18px;"><?= e(date('d-m-Y', strtotime($tanggal))) ?></div>
@@ -60,21 +82,28 @@ require_once __DIR__ . '/header.php';
 <div class="card">
   <h2>Rekap Per Produk</h2>
   <?php if ($perProduk): ?>
-  <table>
+  <div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
     <thead>
-      <tr><th>Kode</th><th>Produk</th><th>Total Terjual</th><th>Total Penjualan</th></tr>
+      <tr class="bg-slate-50 text-slate-600 text-left">
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Kode</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Produk</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Total Terjual</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Total Penjualan</th>
+      </tr>
     </thead>
     <tbody>
       <?php foreach ($perProduk as $p): ?>
-      <tr>
-        <td><?= e($p['kode']) ?></td>
-        <td><?= e($p['nama']) ?></td>
-        <td><?= (int)$p['total_qty'] ?> <?= e($p['satuan']) ?></td>
-        <td><?= rupiah($p['total_penjualan']) ?></td>
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($p['kode']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($p['nama']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= (int)$p['total_qty'] ?> <?= e($p['satuan']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= rupiah($p['total_penjualan']) ?></td>
       </tr>
       <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
   <?php else: ?>
   <p class="muted">Tidak ada penjualan pada tanggal ini.</p>
   <?php endif; ?>
@@ -83,21 +112,28 @@ require_once __DIR__ . '/header.php';
 <div class="card">
   <h2>Daftar Transaksi</h2>
   <?php if ($trxList): ?>
-  <table>
+  <div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
     <thead>
-      <tr><th>Kode</th><th>Waktu</th><th>Total</th><th></th></tr>
+      <tr class="bg-slate-50 text-slate-600 text-left">
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Kode</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Waktu</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Total</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold"></th>
+      </tr>
     </thead>
     <tbody>
       <?php foreach ($trxList as $t): ?>
-      <tr>
-        <td><?= e($t['kode_transaksi']) ?></td>
-        <td><?= e(date('H:i', strtotime($t['created_at']))) ?></td>
-        <td><?= rupiah($t['total']) ?></td>
-        <td><a class="btn btn-sm" href="transaksi.php?action=detail&id=<?= (int)$t['id'] ?>">Detail</a></td>
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($t['kode_transaksi']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e(date('H:i', strtotime($t['created_at']))) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= rupiah($t['total']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><a class="btn btn-sm" href="transaksi.php?action=detail&id=<?= (int)$t['id'] ?>">Detail</a></td>
       </tr>
       <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
   <?php else: ?>
   <p class="muted">Belum ada transaksi pada tanggal ini.</p>
   <?php endif; ?>

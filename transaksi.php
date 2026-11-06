@@ -5,7 +5,7 @@ $action = $_GET['action'] ?? 'list';
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan') {
-    $tanggal = $_POST['tanggal'] ?: date('Y-m-d');
+    $tanggal = ($_POST['tanggal'] ?? '') !== '' ? $_POST['tanggal'] : date('Y-m-d');
     $items   = $_POST['items'] ?? [];
 
     $rows = [];
@@ -106,7 +106,7 @@ require_once __DIR__ . '/header.php';
 ?>
 
 <?php if ($action === 'create'): ?>
-<h2>Transaksi Penjualan Baru</h2>
+<h2 class="text-xl font-bold mb-4">Transaksi Penjualan Baru</h2>
 <form method="post" action="transaksi.php" id="formTrx">
   <input type="hidden" name="aksi" value="simpan">
   <div class="card">
@@ -117,20 +117,28 @@ require_once __DIR__ . '/header.php';
       </div>
     </div>
 
-    <table id="tabelItem">
+    <div class="overflow-x-auto">
+    <table id="tabelItem" class="w-full border-collapse text-sm">
       <thead>
-        <tr><th>Produk</th><th style="width:110px;">Harga</th><th style="width:90px;">Qty</th><th style="width:130px;">Subtotal</th><th style="width:60px;"></th></tr>
+        <tr class="bg-slate-50 text-slate-600 text-left">
+          <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Produk</th>
+          <th class="px-3 py-2.5 border-b border-slate-200 font-semibold" style="width:110px;">Harga</th>
+          <th class="px-3 py-2.5 border-b border-slate-200 font-semibold" style="width:90px;">Qty</th>
+          <th class="px-3 py-2.5 border-b border-slate-200 font-semibold" style="width:130px;">Subtotal</th>
+          <th class="px-3 py-2.5 border-b border-slate-200 font-semibold" style="width:60px;"></th>
+        </tr>
       </thead>
       <tbody id="bodyItem"></tbody>
       <tfoot>
         <tr>
-          <td colspan="3" style="text-align:right;font-weight:700;">Total</td>
-          <td style="font-weight:700;" id="totalTrx">Rp 0</td>
-          <td></td>
+          <td colspan="3" class="px-3 py-2.5 text-right font-bold">Total</td>
+          <td class="px-3 py-2.5 font-bold text-brand" id="totalTrx">Rp 0</td>
+          <td class="px-3 py-2.5"></td>
         </tr>
       </tfoot>
     </table>
-    <p style="margin-top:12px;">
+    </div>
+    <p class="mt-3 flex flex-wrap gap-2">
       <button type="button" class="btn btn-secondary" onclick="tambahBaris()">+ Tambah Baris</button>
       <button type="submit" class="btn btn-warn">Simpan Transaksi</button>
       <a class="btn btn-secondary" href="transaksi.php">Batal</a>
@@ -154,15 +162,18 @@ function opsiProduk() {
   return html;
 }
 
+let idxBaris = 0;
+
 function tambahBaris() {
+  const i = idxBaris++;
   const tb = document.getElementById('bodyItem');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><select name="items[][produk_id]" class="sel-produk" onchange="hitung()" required>${opsiProduk()}</select></td>
-    <td><input type="text" class="inp-harga" readonly value="0" style="background:#f1f5f9;"></td>
-    <td><input type="number" name="items[][qty]" class="inp-qty" min="1" value="1" onchange="hitung()" oninput="hitung()"></td>
-    <td class="cell-sub" style="font-weight:600;">Rp 0</td>
-    <td><button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove();hitung()">x</button></td>`;
+    <td class="px-3 py-2.5 border-b border-slate-100"><select name="items[${i}][produk_id]" class="sel-produk w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm" onchange="hitung()" required>${opsiProduk()}</select></td>
+    <td class="px-3 py-2.5 border-b border-slate-100"><input type="text" class="inp-harga w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm bg-slate-100" readonly value="0"></td>
+    <td class="px-3 py-2.5 border-b border-slate-100"><input type="number" name="items[${i}][qty]" class="inp-qty w-full px-2 py-1.5 border border-slate-300 rounded-md text-sm" min="1" value="1" onchange="hitung()" oninput="hitung()"></td>
+    <td class="cell-sub px-3 py-2.5 border-b border-slate-100 font-semibold">Rp 0</td>
+    <td class="px-3 py-2.5 border-b border-slate-100"><button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove();hitung()">x</button></td>`;
   tb.appendChild(tr);
 }
 
@@ -201,30 +212,38 @@ $stmt = db()->prepare('SELECT d.*, p.nama, p.kode, p.satuan FROM transaksi_detai
 $stmt->execute([$id]);
 $details = $stmt->fetchAll();
 ?>
-<h2>Detail Transaksi</h2>
+<h2 class="text-xl font-bold mb-4">Detail Transaksi</h2>
 <div class="card">
-  <p><strong>Kode:</strong> <?= e($trx['kode_transaksi']) ?> &nbsp;|&nbsp;
+  <p class="mb-4"><strong>Kode:</strong> <?= e($trx['kode_transaksi']) ?> &nbsp;|&nbsp;
      <strong>Tanggal:</strong> <?= e(date('d-m-Y', strtotime($trx['tanggal']))) ?></p>
-  <table>
+  <div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
     <thead>
-      <tr><th>Kode</th><th>Produk</th><th>Harga</th><th>Qty</th><th>Subtotal</th></tr>
+      <tr class="bg-slate-50 text-slate-600 text-left">
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Kode</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Produk</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Harga</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Qty</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Subtotal</th>
+      </tr>
     </thead>
     <tbody>
       <?php foreach ($details as $d): ?>
-      <tr>
-        <td><?= e($d['kode']) ?></td>
-        <td><?= e($d['nama']) ?></td>
-        <td><?= rupiah($d['harga']) ?></td>
-        <td><?= (int)$d['qty'] ?> <?= e($d['satuan']) ?></td>
-        <td><?= rupiah($d['subtotal']) ?></td>
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($d['kode']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($d['nama']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= rupiah($d['harga']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= (int)$d['qty'] ?> <?= e($d['satuan']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= rupiah($d['subtotal']) ?></td>
       </tr>
       <?php endforeach; ?>
     </tbody>
     <tfoot>
-      <tr><td colspan="4" style="text-align:right;font-weight:700;">Total</td><td style="font-weight:700;"><?= rupiah($trx['total']) ?></td></tr>
+      <tr><td colspan="4" class="px-3 py-2.5 text-right font-bold">Total</td><td class="px-3 py-2.5 font-bold text-brand"><?= rupiah($trx['total']) ?></td></tr>
     </tfoot>
   </table>
-  <p style="margin-top:14px;">
+  </div>
+  <p class="mt-4 flex flex-wrap gap-2">
     <a class="btn btn-secondary" href="transaksi.php">Kembali</a>
     <a class="btn btn-danger" href="transaksi.php?action=delete&id=<?= (int)$trx['id'] ?>" onclick="return confirm('Batalkan transaksi ini? Stok akan dikembalikan.')">Batalkan Transaksi</a>
   </p>
@@ -244,29 +263,34 @@ $stmt = db()->prepare($sql);
 $stmt->execute($params);
 $list = $stmt->fetchAll();
 ?>
-<h2>Riwayat Transaksi</h2>
+<h2 class="text-xl font-bold mb-4">Riwayat Transaksi</h2>
 <div class="card">
-  <div class="search-bar">
-    <form method="get" action="transaksi.php" class="search-bar" style="margin:0;width:100%;">
-      <input type="date" name="tanggal" value="<?= e($filterTanggal) ?>">
-      <button class="btn" type="submit">Filter</button>
-      <a class="btn btn-secondary" href="transaksi.php">Reset</a>
-      <a class="btn btn-warn" href="transaksi.php?action=create">+ Transaksi Baru</a>
-    </form>
-  </div>
+  <form method="get" action="transaksi.php" class="flex flex-wrap gap-2 items-center mb-4">
+    <input type="date" name="tanggal" value="<?= e($filterTanggal) ?>" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-200">
+    <button class="btn" type="submit">Filter</button>
+    <a class="btn btn-secondary" href="transaksi.php">Reset</a>
+    <a class="btn btn-warn" href="transaksi.php?action=create">+ Transaksi Baru</a>
+  </form>
   <?php if ($list): ?>
-  <table>
+  <div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
     <thead>
-      <tr><th>Kode</th><th>Tanggal</th><th>Jumlah Item</th><th>Total</th><th>Aksi</th></tr>
+      <tr class="bg-slate-50 text-slate-600 text-left">
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Kode</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Tanggal</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Jumlah Item</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Total</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Aksi</th>
+      </tr>
     </thead>
     <tbody>
       <?php foreach ($list as $t): ?>
-      <tr>
-        <td><?= e($t['kode_transaksi']) ?></td>
-        <td><?= e(date('d-m-Y', strtotime($t['tanggal']))) ?></td>
-        <td><?= (int)$t['jumlah_item'] ?></td>
-        <td><?= rupiah($t['total']) ?></td>
-        <td class="actions">
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($t['kode_transaksi']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e(date('d-m-Y', strtotime($t['tanggal']))) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= (int)$t['jumlah_item'] ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= rupiah($t['total']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100 actions">
           <a class="btn btn-sm" href="transaksi.php?action=detail&id=<?= (int)$t['id'] ?>">Detail</a>
           <a class="btn btn-sm btn-danger" href="transaksi.php?action=delete&id=<?= (int)$t['id'] ?>" onclick="return confirm('Batalkan transaksi ini?')">Batalkan</a>
         </td>
@@ -274,6 +298,7 @@ $list = $stmt->fetchAll();
       <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
   <?php else: ?>
   <p class="muted">Belum ada transaksi.</p>
   <?php endif; ?>

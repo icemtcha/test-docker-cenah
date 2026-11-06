@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'mutasi'
     $tipe     = $_POST['tipe'] ?? 'masuk';
     $jumlah   = (int)($_POST['jumlah'] ?? 0);
     $ket      = trim($_POST['keterangan'] ?? '');
-    $tanggal  = $_POST['tanggal'] ?: date('Y-m-d');
+    $tanggal  = ($_POST['tanggal'] ?? '') !== '' ? $_POST['tanggal'] : date('Y-m-d');
 
     if ($produkId <= 0 || $jumlah <= 0 || !in_array($tipe, ['masuk', 'keluar'], true)) {
         set_flash('danger', 'Data mutasi tidak valid. Jumlah harus lebih dari 0.');
@@ -62,7 +62,7 @@ $mutasi = $stmt->fetchAll();
 
 require_once __DIR__ . '/header.php';
 ?>
-<h2>Stok Masuk / Keluar</h2>
+<h2 class="text-xl font-bold mb-4">Stok Masuk / Keluar</h2>
 
 <div class="card">
   <h2>Catat Mutasi Stok</h2>
@@ -108,34 +108,42 @@ require_once __DIR__ . '/header.php';
 
 <div class="card">
   <h2>Riwayat Mutasi (100 terakhir)</h2>
-  <div class="search-bar">
+  <div class="flex flex-wrap gap-2 mb-4">
     <a class="btn <?= $filterTipe === '' ? '' : 'btn-secondary' ?>" href="stok.php">Semua</a>
     <a class="btn <?= $filterTipe === 'masuk' ? '' : 'btn-secondary' ?>" href="stok.php?tipe=masuk">Masuk</a>
     <a class="btn <?= $filterTipe === 'keluar' ? '' : 'btn-secondary' ?>" href="stok.php?tipe=keluar">Keluar</a>
   </div>
   <?php if ($mutasi): ?>
-  <table>
+  <div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
     <thead>
-      <tr><th>Tanggal</th><th>Produk</th><th>Tipe</th><th>Jumlah</th><th>Keterangan</th></tr>
+      <tr class="bg-slate-50 text-slate-600 text-left">
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Tanggal</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Produk</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Tipe</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Jumlah</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Keterangan</th>
+      </tr>
     </thead>
     <tbody>
       <?php foreach ($mutasi as $m): ?>
-      <tr>
-        <td><?= e(date('d-m-Y', strtotime($m['tanggal']))) ?></td>
-        <td><?= e($m['produk_nama']) ?></td>
-        <td>
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e(date('d-m-Y', strtotime($m['tanggal']))) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($m['produk_nama']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100">
           <?php if ($m['tipe'] === 'masuk'): ?>
             <span class="badge badge-ok">Masuk</span>
           <?php else: ?>
             <span class="badge badge-low">Keluar</span>
           <?php endif; ?>
         </td>
-        <td><?= (int)$m['jumlah'] ?> <?= e($m['satuan']) ?></td>
-        <td><?= e($m['keterangan'] ?? '-') ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= (int)$m['jumlah'] ?> <?= e($m['satuan']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($m['keterangan'] ?? '-') ?></td>
       </tr>
       <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
   <?php else: ?>
   <p class="muted">Belum ada mutasi stok.</p>
   <?php endif; ?>

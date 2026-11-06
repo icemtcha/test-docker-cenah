@@ -50,7 +50,7 @@ $kategoriList = db()->query('SELECT k.*, (SELECT COUNT(*) FROM produk p WHERE p.
 
 require_once __DIR__ . '/header.php';
 ?>
-<h2>Kategori Produk</h2>
+<h2 class="text-xl font-bold mb-4">Kategori Produk</h2>
 
 <div class="card">
   <h2><?= $editData ? 'Edit Kategori' : 'Tambah Kategori' ?></h2>
@@ -69,16 +69,21 @@ require_once __DIR__ . '/header.php';
 <div class="card">
   <h2>Daftar Kategori</h2>
   <?php if ($kategoriList): ?>
-  <table>
+  <div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
     <thead>
-      <tr><th>Nama Kategori</th><th>Jumlah Produk</th><th>Aksi</th></tr>
+      <tr class="bg-slate-50 text-slate-600 text-left">
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Nama Kategori</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Jumlah Produk</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Aksi</th>
+      </tr>
     </thead>
     <tbody>
       <?php foreach ($kategoriList as $k): ?>
-      <tr>
-        <td><?= e($k['nama']) ?></td>
-        <td><?= (int)$k['jumlah_produk'] ?></td>
-        <td class="actions">
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($k['nama']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= (int)$k['jumlah_produk'] ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100 actions">
           <a class="btn btn-sm" href="kategori.php?action=edit&id=<?= (int)$k['id'] ?>">Edit</a>
           <a class="btn btn-sm btn-danger" href="kategori.php?action=delete&id=<?= (int)$k['id'] ?>" onclick="return confirm('Hapus kategori ini?')">Hapus</a>
         </td>
@@ -86,6 +91,7 @@ require_once __DIR__ . '/header.php';
       <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
   <?php else: ?>
   <p class="muted">Belum ada kategori.</p>
   <?php endif; ?>

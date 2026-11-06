@@ -12,9 +12,9 @@ $trxTerbaru = db()->query('SELECT * FROM transaksi ORDER BY created_at DESC LIMI
 
 require_once __DIR__ . '/header.php';
 ?>
-<h2>Dashboard</h2>
+<h2 class="text-xl font-bold mb-4">Dashboard</h2>
 
-<div class="stat-grid" style="margin-bottom:20px;">
+<div class="flex gap-4 flex-wrap mb-5">
   <div class="stat">
     <div class="label">Total Produk</div>
     <div class="value"><?= $totalProduk ?></div>
@@ -36,23 +36,31 @@ require_once __DIR__ . '/header.php';
 <?php if ($menipis): ?>
 <div class="card">
   <h2>&#9888; Peringatan Stok Menipis (<?= count($menipis) ?> produk)</h2>
-  <table>
+  <div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
     <thead>
-      <tr><th>Kode</th><th>Nama Produk</th><th>Kategori</th><th>Stok</th><th>Stok Minimum</th></tr>
+      <tr class="bg-slate-50 text-slate-600 text-left">
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Kode</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Nama Produk</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Kategori</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Stok</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Stok Minimum</th>
+      </tr>
     </thead>
     <tbody>
       <?php foreach ($menipis as $p): ?>
-      <tr>
-        <td><?= e($p['kode']) ?></td>
-        <td><?= e($p['nama']) ?></td>
-        <td><?= e($p['kategori_nama'] ?? '-') ?></td>
-        <td><span class="badge badge-low"><?= (int)$p['stok'] ?> <?= e($p['satuan']) ?></span></td>
-        <td><?= (int)$p['stok_minimum'] ?></td>
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($p['kode']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($p['nama']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($p['kategori_nama'] ?? '-') ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><span class="badge badge-low"><?= (int)$p['stok'] ?> <?= e($p['satuan']) ?></span></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= (int)$p['stok_minimum'] ?></td>
       </tr>
       <?php endforeach; ?>
     </tbody>
   </table>
-  <p class="muted" style="margin-bottom:0;">Segera lakukan stok masuk melalui menu <a href="stok.php">Stok</a>.</p>
+  </div>
+  <p class="muted mt-3 mb-0">Segera lakukan stok masuk melalui menu <a class="text-brand underline" href="stok.php">Stok</a>.</p>
 </div>
 <?php else: ?>
 <div class="alert alert-success">Semua stok produk dalam kondisi aman.</div>
@@ -61,21 +69,28 @@ require_once __DIR__ . '/header.php';
 <div class="card">
   <h2>Transaksi Terbaru</h2>
   <?php if ($trxTerbaru): ?>
-  <table>
+  <div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
     <thead>
-      <tr><th>Kode</th><th>Tanggal</th><th>Total</th><th></th></tr>
+      <tr class="bg-slate-50 text-slate-600 text-left">
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Kode</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Tanggal</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold">Total</th>
+        <th class="px-3 py-2.5 border-b border-slate-200 font-semibold"></th>
+      </tr>
     </thead>
     <tbody>
       <?php foreach ($trxTerbaru as $t): ?>
-      <tr>
-        <td><?= e($t['kode_transaksi']) ?></td>
-        <td><?= e(date('d-m-Y', strtotime($t['tanggal']))) ?></td>
-        <td><?= rupiah($t['total']) ?></td>
-        <td><a class="btn btn-sm" href="transaksi.php?action=detail&id=<?= (int)$t['id'] ?>">Detail</a></td>
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e($t['kode_transaksi']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= e(date('d-m-Y', strtotime($t['tanggal']))) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><?= rupiah($t['total']) ?></td>
+        <td class="px-3 py-2.5 border-b border-slate-100"><a class="btn btn-sm" href="transaksi.php?action=detail&id=<?= (int)$t['id'] ?>">Detail</a></td>
       </tr>
       <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
   <?php else: ?>
   <p class="muted">Belum ada transaksi.</p>
   <?php endif; ?>
